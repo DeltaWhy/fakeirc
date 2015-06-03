@@ -3,7 +3,7 @@ Transparent anything-to-IRC bridge for ngircd
 
 ## Usage
 ```
-fakeirc -c <config_file>
+fakeirc <name> <host> <port> <password>
 fakeirc add <user> [<provider>]
 fakeirc remove <user>
 fakeirc join <user> <channel>
