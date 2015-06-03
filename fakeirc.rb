@@ -297,12 +297,12 @@ end
 case ARGV[0]
 when "add", "remove", "join", "part", "away", "unaway", "message", "action"
   EventMachine.run do
-    EventMachine.connect '/tmp/fakeirc.sock', port=nil, handler=UnixClient, false, *ARGV
+    EventMachine.connect '/tmp/fakeirc/fakeirc.sock', port=nil, handler=UnixClient, false, *ARGV
   end
 when "listen"
   begin
     EventMachine.run do
-      EventMachine.connect '/tmp/fakeirc.sock', port=nil, handler=UnixClient, true, *ARGV
+      EventMachine.connect '/tmp/fakeirc/fakeirc.sock', port=nil, handler=UnixClient, true, *ARGV
     end
   rescue Interrupt
   end
@@ -317,10 +317,11 @@ else
   begin
     EventMachine.run do
       $server = EventMachine.connect(ARGV[1], ARGV[2].to_i, IRCServer, ARGV[0], ARGV[1], ARGV[2].to_i, ARGV[3])
-      EventMachine.start_server("/tmp/fakeirc.sock", handler=UnixServer)
+      Dir.mkdir("/tmp/fakeirc") unless File.exist? "/tmp/fakeirc"
+      EventMachine.start_server("/tmp/fakeirc/fakeirc.sock", handler=UnixServer)
       EventMachine.open_keyboard KeyboardHandler
     end
   rescue Interrupt
-    `rm /tmp/fakeirc.sock`
+    `rm /tmp/fakeirc/fakeirc.sock`
   end
 end
