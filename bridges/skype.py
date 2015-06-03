@@ -47,9 +47,9 @@ def on_message_status(message, status):
     if message.Chat == chat:
         if status == "RECEIVED":
             if message.Type == "SAID":
-                fakeirc("message", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, message.Body)
+                fakeirc("message", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(message.Body, 'utf-8'))
             elif message.Type == "EMOTED":
-                fakeirc("action", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, message.Body)
+                fakeirc("action", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(message.Body, 'utf-8'))
         else:
             print(message, status)
 
