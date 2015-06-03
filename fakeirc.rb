@@ -189,7 +189,7 @@ class IRCServer < EventMachine::Connection
 
   def send_message(prefix, command, *args)
     args.compact!
-    if args.length > 0 and args[-1].include? ' '
+    if args.length > 0
       args[-1] = ":#{args[-1]}"
     end
     line = ""
