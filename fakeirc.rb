@@ -57,6 +57,10 @@ class IRCUser
       chan.umodes.delete(@nick)
     end
   end
+
+  def inspect
+    "<IRCUser @nick=#{@nick} @channels=#{@channels.map(&:name).inspect}>"
+  end
 end
 
 class FakeUser < IRCUser
@@ -110,6 +114,10 @@ class IRCChannel
         l.send_data "<#{nick}> #{message}\n"
       end
     end
+  end
+
+  def inspect
+    "<IRCChannel @name=#{@name} @users=#{@users.map(&:nick).inspect}>"
   end
 end
 
@@ -210,7 +218,8 @@ module UnixServer
       $server.send_message args[1], "PRIVMSG", args[2], "\001ACTION #{args[3..args.length].join(' ')}\001"
       send_data "\n"
     when "listen"
-      (IRCChannel.get(args[1]) || IRCChannel.new(args[1])).listeners << self
+      chan = IRCChannel.get(args[1])
+      chan.listeners << self
     end
   end
 end
@@ -236,6 +245,7 @@ class UnixClient < EM::Connection
 
   def receive_line line
     puts line
+    STDOUT.flush
     close_connection_after_writing unless @persistent
   end
 
