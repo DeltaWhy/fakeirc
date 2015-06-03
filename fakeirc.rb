@@ -209,10 +209,10 @@ module UnixServer
     args = line.split ' '
     case args[0]
     when "add"
-      FakeUser.new(args[1], args[2])
+      FakeUser.new(args[1], args[2]) unless IRCUser.get(args[1])
       send_data "\n"
     when "remove"
-      IRCUser.remove(args[1], args[2..args.length].join(' '))
+      IRCUser.remove(args[1], args[2..args.length].join(' ')) if IRCUser.get(args[1])
       send_data "\n"
     when "join"
       IRCUser.get(args[1]).join(args[2])
