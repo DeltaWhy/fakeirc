@@ -26,16 +26,12 @@ my_nick = skype.CurrentUser.Handle
 chat = skype.Chat(CHATNAME)
 
 members = []
-online_members = []
 for m in chat.Members:
-    #if m == skype.CurrentUser:
-        #continue
-    members.append(m.Handle)
-    if m.OnlineStatus == "INVISIBLE" or m.OnlineStatus == "OFFLINE":
+    if m == skype.CurrentUser:
         continue
-    online_members.append(m.Handle)
+    members.append(m.Handle)
     fakeirc("add", m.Handle+"["+SUFFIX+"]", PROVIDER)
-    if m.OnlineStatus == "AWAY" or m.OnlineStatus == "DND":
+    if m.OnlineStatus != "ONLINE":
         fakeirc("away", m.Handle+"["+SUFFIX+"]")
     fakeirc("join", m.Handle+"["+SUFFIX+"]", CHANNEL)
 
@@ -58,19 +54,11 @@ def on_message_status(message, status):
             print(message, status)
 
 def on_online_status(user, status):
-    if user.Handle in online_members:
-        if status == "INVISIBLE" or status == "OFFLINE":
-            fakeirc("remove", user.Handle+"["+SUFFIX+"]")
-            online_members.remove(user.Handle)
-        elif status == "AWAY" or status == "DND":
+    if user.Handle in members:
+        if status != "ONLINE":
             fakeirc("away", user.Handle+"["+SUFFIX+"]")
-        elif status == "ONLINE":
+        else:
             fakeirc("unaway", user.Handle+"["+SUFFIX+"]")
-    elif user.Handle in members:
-        if status != "INVISIBLE" and status != "OFFLINE":
-            online_members.append(user.Handle)
-            fakeirc("add", user.Handle+"["+SUFFIX+"]", PROVIDER)
-            fakeirc("join", user.Handle+"["+SUFFIX+"]", CHANNEL)
 
 signal.signal(signal.SIGINT, on_interrupt)
 skype.OnMessageStatus = on_message_status
