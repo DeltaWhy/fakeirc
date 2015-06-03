@@ -64,8 +64,11 @@ class IRCUser
 end
 
 class FakeUser < IRCUser
+  attr_reader :provider
+
   def initialize(nick, provider=nil)
     provider = "global" if !provider or provider == ""
+    @provider = provider
     params = [nick, "0", "~#{provider}", "#{provider}.bridge", "1", "+", nick]
     super(*params)
     $server.send_message($server.name, "NICK", *params)
@@ -108,6 +111,10 @@ class IRCChannel
 
   def privmsg(nick, message)
     @listeners.each do |l|
+      if l.provider
+        u = IRCUser.get(nick)
+        next if u.is_a? FakeUser and u.provider == l.provider
+      end
       if message =~ /\A\001ACTION (.+)\001\z/
         l.send_data "* #{nick} #{$1}\n"
       else
@@ -196,6 +203,8 @@ end
 
 module UnixServer
   include EM::Protocols::LineProtocol
+  attr_reader :provider
+
   def receive_line line
     args = line.split ' '
     case args[0]
@@ -212,13 +221,18 @@ module UnixServer
       IRCUser.get(args[1]).part(args[2])
       send_data "\n"
     when "message"
-      $server.send_message args[1], "PRIVMSG", args[2], args[3..args.length].join(' ')
+      msg = args[3..args.length].join(' ')
+      $server.send_message args[1], "PRIVMSG", args[2], msg
       send_data "\n"
+      IRCChannel.get(args[2]).privmsg(args[1], msg)
     when "action"
-      $server.send_message args[1], "PRIVMSG", args[2], "\001ACTION #{args[3..args.length].join(' ')}\001"
+      msg = "\001ACTION #{args[3..args.length].join(' ')}\001"
+      $server.send_message args[1], "PRIVMSG", args[2], msg
       send_data "\n"
+      IRCChannel.get(args[2]).privmsg(args[1], msg)
     when "listen"
-      chan = IRCChannel.get(args[1])
+      @provider = args[2] if args[2]
+      chan = IRCChannel.get(args[1]) || IRCChannel.new(args[1], "")
       chan.listeners << self
     end
   end
