@@ -8,18 +8,13 @@ fakeirc add <user> [<provider>]
 fakeirc remove <user>
 fakeirc join <user> <channel>
 fakeirc part <user> <channel>
+fakeirc away <user>
+fakeirc unaway <user>
 fakeirc message <user> <channel> <message>
 fakeirc action <user> <channel> <action>
-fakeirc listen ALL [<channel>]
-fakeirc listen <provider> [<channel>]
+fakeirc listen <channel> [<provider>]
 ```
 
-## Config
-```
-name = bridge.irc.your.domain
-host = irc.your.domain
-port = 6667
-password = your_server_password
-pidfile = fakeirc.pid
-socket = fakeirc.sock
-```
+## Included bridges
+* Docker-Minecraft
+* Skype group chat
