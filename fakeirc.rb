@@ -62,7 +62,7 @@ end
 class FakeUser < IRCUser
   def initialize(nick, provider=nil)
     provider = "global" if !provider or provider == ""
-    params = [nick, "0", "~#{nick}", "#{provider}.bridge", "1", "+", nick]
+    params = [nick, "0", "~#{provider}", "#{provider}.bridge", "1", "+", nick]
     super(*params)
     $server.send_message($server.name, "NICK", *params)
   end
@@ -210,7 +210,7 @@ module UnixServer
       $server.send_message args[1], "PRIVMSG", args[2], "\001ACTION #{args[3..args.length].join(' ')}\001"
       send_data "\n"
     when "listen"
-      IRCChannel.get(args[1]).listeners << self
+      (IRCChannel.get(args[1]) || IRCChannel.new(args[1])).listeners << self
     end
   end
 end
