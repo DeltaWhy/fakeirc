@@ -155,7 +155,7 @@ class IRCServer < EventMachine::Connection
   def receive_message(prefix, command, args)
     case command
     when "PING"
-      send_message prefix, "PONG", *args
+      send_message prefix||@name, "PONG", *args
     when "NICK"
       if args.length == 1
         IRCUser.rename(prefix, args[0])
@@ -225,6 +225,12 @@ module UnixServer
       $server.send_message args[1], "PRIVMSG", args[2], msg
       send_data "\n"
       IRCChannel.get(args[2]).privmsg(args[1], msg)
+    when "away"
+      $server.send_message $server.name, "MODE", args[1], "+a"
+      send_data "\n"
+    when "unaway"
+      $server.send_message $server.name, "MODE", args[1], "-a"
+      send_data "\n"
     when "action"
       msg = "\001ACTION #{args[3..args.length].join(' ')}\001"
       $server.send_message args[1], "PRIVMSG", args[2], msg
@@ -275,6 +281,8 @@ fakeirc add <user> [<provider>]
 fakeirc remove <user> [<quitmessage>]
 fakeirc join <user> <channel>
 fakeirc part <user> <channel>
+fakeirc away <user>
+fakeirc unaway <user>
 fakeirc message <user> <channel> <message>
 fakeirc action <user> <channel> <action>
 fakeirc listen <channel>
@@ -287,14 +295,14 @@ if ARGV.length == 0
 end
 
 case ARGV[0]
-when "add", "remove", "join", "part", "message", "action"
+when "add", "remove", "join", "part", "away", "unaway", "message", "action"
   EventMachine.run do
-    EventMachine.connect './fakeirc.sock', port=nil, handler=UnixClient, false, *ARGV
+    EventMachine.connect '/tmp/fakeirc.sock', port=nil, handler=UnixClient, false, *ARGV
   end
 when "listen"
   begin
     EventMachine.run do
-      EventMachine.connect './fakeirc.sock', port=nil, handler=UnixClient, true, *ARGV
+      EventMachine.connect '/tmp/fakeirc.sock', port=nil, handler=UnixClient, true, *ARGV
     end
   rescue Interrupt
   end
@@ -309,10 +317,10 @@ else
   begin
     EventMachine.run do
       $server = EventMachine.connect(ARGV[1], ARGV[2].to_i, IRCServer, ARGV[0], ARGV[1], ARGV[2].to_i, ARGV[3])
-      EventMachine.start_server("fakeirc.sock", handler=UnixServer)
+      EventMachine.start_server("/tmp/fakeirc.sock", handler=UnixServer)
       EventMachine.open_keyboard KeyboardHandler
     end
   rescue Interrupt
-    `rm fakeirc.sock`
+    `rm /tmp/fakeirc.sock`
   end
 end
