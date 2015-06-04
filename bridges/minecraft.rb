@@ -21,7 +21,7 @@ stdin, stdout, stderr, wait_thr = Open3.popen3("docker attach --sig-proxy=false 
 
 thr = Thread.new do
   loop do
-    m = stdout.gets
+    m = stdout.gets.encode("UTF-8")
     STDERR.puts m
     STDERR.flush
     if m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: \<(.+)\> (.+)\z/
