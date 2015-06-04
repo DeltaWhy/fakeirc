@@ -63,6 +63,14 @@ class IRCUser
   end
 end
 
+class IRCService < IRCUser
+  def initialize(ident, servertoken, distribution, umode, hopcount, info)
+    nick, _, ident = ident.partition('!')
+    user, _, host = ident.partition('@')
+    super(nick, hopcount, user, host, servertoken, umode, info)
+  end
+end
+
 class FakeUser < IRCUser
   attr_reader :provider
 
@@ -159,11 +167,11 @@ class IRCServer < EventMachine::Connection
     when "NICK"
       if args.length == 1
         IRCUser.rename(prefix, args[0])
-        puts IRCUser.get(args[0]).inspect
       else
         IRCUser.new(*args)
-        puts IRCUser.get(args[0]).inspect
       end
+    when "SERVICE"
+      IRCService.new(*args)
     when "CHANINFO"
       IRCChannel.new(*args)
     when "NJOIN"
