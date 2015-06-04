@@ -3,6 +3,8 @@ require 'open3'
 require 'shellwords'
 require 'json'
 
+JSON.dump_default_options[:ascii_only] = true
+
 FAKEIRC=File.join File.dirname(__FILE__), '..', 'fakeirc.rb'
 def fakeirc(*args)
   %x( #{FAKEIRC} #{args.map(&:shellescape).join(' ')} )
@@ -21,7 +23,7 @@ stdin, stdout, stderr, wait_thr = Open3.popen3("docker attach --sig-proxy=false 
 
 thr = Thread.new do
   loop do
-    m = stdout.gets.encode("UTF-8")
+    m = stdout.gets.encode("UTF-8", "UTF-8")
     STDERR.puts m
     STDERR.flush
     if m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: \<(.+)\> (.+)\z/
@@ -41,7 +43,7 @@ stdin2, stdout2, stderr2, wait_thr2 = Open3.popen3("#{FAKEIRC} listen #{CHANNEL.
 
 thr2 = Thread.new do
   loop do
-    m = stdout2.gets.strip
+    m = stdout2.gets.encode("UTF-8", "UTF-8").strip
     STDERR.puts m
     STDERR.flush
     if m =~ /\A\<([^>]+)\> (.+)\z/
