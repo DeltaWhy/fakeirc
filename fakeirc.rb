@@ -247,7 +247,7 @@ module UnixServer
     when "list"
       chan = IRCChannel.get(args[1])
       chan.users.each do |u|
-        send_data "#{u.nick}\n" unless args[2] and u.provider == args[2]
+        send_data "#{u.nick}\n" unless u.is_a? FakeUser and args[2] and u.provider == args[2]
       end
     when "listen"
       @provider = args[2] if args[2]
