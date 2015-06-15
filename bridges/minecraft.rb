@@ -34,8 +34,10 @@ thr = Thread.new do
       fakeirc 'add', $1+SUFFIX, "#{PROVIDER}"
       fakeirc 'join', $1+SUFFIX, "#{CHANNEL}"
       users, _ = Open3.capture2("#{FAKEIRC} list #{CHANNEL.shellescape} #{PROVIDER}")
-      cmd = "tellraw #{$1} [\"\",{\"text\":\"Currently on IRC: \",\"color\":\"yellow\"},{\"text\":#{JSON.dump users.split('\n').compact.join(', ')},\"color\":\"none\"}]"
+      cmd = "tellraw #{$1} [\"\",{\"text\":\"Connected to #{CHANNEL} on IRC\",\"color\":\"yellow\"}]"
       stdin.puts cmd
+      cmd = "tellraw #{$1} [\"\",{\"text\":\"Currently on IRC: \",\"color\":\"yellow\"},{\"text\":#{JSON.dump users.split("\n").compact.join(', ')},\"color\":\"none\"}]"
+      stdin.puts cmd unless users.empty?
       stdin.flush
     elsif m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: ([^ ]+) left the game\z/
       fakeirc 'remove', $1+SUFFIX
