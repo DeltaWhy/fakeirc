@@ -143,6 +143,15 @@ class IRCChannel
     end
   end
 
+  def set_topic(topic, nick)
+    @topic = topic
+    u = IRCUser.get(nick)
+    @listeners.each do |l|
+      next if l.provider and u.is_a? FakeUser and u.provider == l.provider
+      l.send_data "TOPIC #{topic}\n"
+    end
+  end
+
   def inspect
     "<IRCChannel @name=#{@name} @users=#{@users.map(&:nick).inspect}>"
   end
@@ -202,6 +211,11 @@ class IRCServer < EventMachine::Connection
       if chan
         chan.privmsg(prefix, args[1])
       end
+    when "TOPIC"
+      chan = IRCChannel.get(args[0])
+      if chan
+        chan.set_topic(args[1], prefix)
+      end
     else
       #puts [prefix, command, args].inspect
     end
@@ -256,6 +270,11 @@ module UnixServer
       $server.send_message args[1], "PRIVMSG", args[2], msg
       send_data "\n"
       IRCChannel.get(args[2]).privmsg(args[1], msg)
+    when "topic"
+      msg = args[3..args.length].join(' ')
+      $server.send_message args[1], "TOPIC", args[2], msg
+      send_data "\n"
+      IRCChannel.get(args[2]).set_topic(msg, args[1])
     when "list"
       chan = IRCChannel.get(args[1])
       chan.users.each do |u|
@@ -310,6 +329,7 @@ fakeirc away <user>
 fakeirc unaway <user>
 fakeirc message <user> <channel> <message>
 fakeirc action <user> <channel> <action>
+fakeirc topic <user> <channel> <topic>
 fakeirc listen <channel> [<provider>]
 fakeirc list <channel> [<provider>]
 eos
@@ -321,7 +341,7 @@ if ARGV.length == 0
 end
 
 case ARGV[0]
-when "add", "remove", "join", "part", "away", "unaway", "message", "action", "list"
+when "add", "remove", "join", "part", "away", "unaway", "message", "action", "list", "topic"
   EventMachine.run do
     EventMachine.connect '/tmp/fakeirc/fakeirc.sock', port=nil, handler=UnixClient, false, *ARGV
   end
