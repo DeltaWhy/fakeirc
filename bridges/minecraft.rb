@@ -54,6 +54,14 @@ thr2 = Thread.new do
       cmd = "tellraw @a [\"\",{\"text\":\"* \"},{\"text\":\"#{$1}\",\"color\":\"gray\"},{\"text\":\" \",\"color\":\"none\"},{\"text\":#{JSON.dump $2},\"color\":\"none\"}]"
       stdin.puts cmd
       stdin.flush
+    elsif m =~ /\AJOIN (.+)\z/
+      cmd = "tellraw @a [\"\",{\"text\":\"#{$1}\",\"color\":\"gray\"},{\"text\":\" joined IRC\",\"color\":\"yellow\"}]"
+      stdin.puts cmd
+      stdin.flush
+    elsif m =~ /\APART (.+)\z/
+      cmd = "tellraw @a [\"\",{\"text\":\"#{$1}\",\"color\":\"gray\"},{\"text\":\" left IRC\",\"color\":\"yellow\"}]"
+      stdin.puts cmd
+      stdin.flush
     end
   end
 end
