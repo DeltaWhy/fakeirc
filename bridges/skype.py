@@ -2,6 +2,7 @@
 from __future__ import print_function
 import Skype4Py
 import os
+import re
 import sys
 import subprocess
 import signal
@@ -24,6 +25,7 @@ skype = Skype4Py.Skype()
 skype.Attach()
 my_nick = skype.CurrentUser.Handle
 chat = skype.Chat(CHATNAME)
+old_topic = chat.Topic
 
 members = []
 for m in chat.Members:
@@ -50,6 +52,8 @@ def on_message_status(message, status):
                 fakeirc("message", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(message.Body, 'utf-8'))
             elif message.Type == "EMOTED":
                 fakeirc("action", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(message.Body, 'utf-8'))
+            elif message.Type == "SETTOPIC":
+                fakeirc("topic", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(message.Body, 'utf-8'))
         else:
             print(message, status)
 
@@ -74,7 +78,13 @@ def main_loop():
         while "\n" in message_buffer:
             line, _, message_buffer = message_buffer.partition("\n")
             print(line)
-            chat.SendMessage(line)
+            if re.match('^\<([^>]+)> (.+)$', line):
+                chat.SendMessage(line)
+            elif re.match('^\* ([^ ]+) (.+)$', line):
+                chat.SendMessage(line)
+            elif re.match('^TOPIC (.+)$', line):
+                m = re.match('^TOPIC (.+)$', line)
+                chat.Topic = m.group(1)
 
 if __name__ == "__main__":
     main_loop()
