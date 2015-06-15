@@ -35,6 +35,12 @@ class IRCUser
     chan.users << self
     chan.umodes[@nick] = mode if mode
     self.channels << chan
+    chan.listeners.each do |l|
+      if l.provider
+        next if self.is_a? FakeUser and self.provider == l.provider
+      end
+      l.send_data "JOIN #{@nick}\n"
+    end
   end
 
   def part(channel)
@@ -42,6 +48,12 @@ class IRCUser
     chan.users.delete(self)
     chan.umodes.delete(@nick)
     self.channels.delete(chan)
+    chan.listeners.each do |l|
+      if l.provider
+        next if self.is_a? FakeUser and self.provider == l.provider
+      end
+      l.send_data "PART #{@nick}\n"
+    end
   end
 
   def nick=(newnick)
