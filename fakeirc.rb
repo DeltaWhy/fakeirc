@@ -244,6 +244,11 @@ module UnixServer
       $server.send_message args[1], "PRIVMSG", args[2], msg
       send_data "\n"
       IRCChannel.get(args[2]).privmsg(args[1], msg)
+    when "list"
+      chan = IRCChannel.get(args[1])
+      chan.users.each do |u|
+        send_data "#{u.nick}\n" unless args[2] and u.provider == args[2]
+      end
     when "listen"
       @provider = args[2] if args[2]
       chan = IRCChannel.get(args[1]) || IRCChannel.new(args[1], "")
@@ -293,7 +298,8 @@ fakeirc away <user>
 fakeirc unaway <user>
 fakeirc message <user> <channel> <message>
 fakeirc action <user> <channel> <action>
-fakeirc listen <channel>
+fakeirc listen <channel> [<provider>]
+fakeirc list <channel> [<provider>]
 eos
 end
 
@@ -303,7 +309,7 @@ if ARGV.length == 0
 end
 
 case ARGV[0]
-when "add", "remove", "join", "part", "away", "unaway", "message", "action"
+when "add", "remove", "join", "part", "away", "unaway", "message", "action", "list"
   EventMachine.run do
     EventMachine.connect '/tmp/fakeirc/fakeirc.sock', port=nil, handler=UnixClient, false, *ARGV
   end
