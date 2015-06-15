@@ -33,6 +33,10 @@ thr = Thread.new do
     elsif m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: ([^ ]+) joined the game\z/
       fakeirc 'add', $1+SUFFIX, "#{PROVIDER}"
       fakeirc 'join', $1+SUFFIX, "#{CHANNEL}"
+      users, _ = Open3.capture2("#{FAKEIRC} list #{CHANNEL.shellescape} #{PROVIDER}")
+      cmd = "tellraw #{$1} [\"\",{\"text\":\"Currently on IRC: \",\"color\":\"yellow\"},{\"text\":#{JSON.dump users.split('\n').compact.join(', ')},\"color\":\"none\"}]"
+      stdin.puts cmd
+      stdin.flush
     elsif m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: ([^ ]+) left the game\z/
       fakeirc 'remove', $1+SUFFIX
     end
