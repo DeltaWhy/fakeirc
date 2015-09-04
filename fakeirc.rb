@@ -230,6 +230,9 @@ class IRCServer < EventMachine::Connection
     line += ":#{prefix} " if prefix
     line += command.upcase
     line += " #{args.join ' '}" if args.length > 0
+    if line.length > 253
+      line = line[0..253]
+    end
     STDOUT.puts line
     send_data line+"\r\n"
   end
