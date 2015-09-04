@@ -30,7 +30,7 @@ thr = Thread.new do
       fakeirc 'message', $1+SUFFIX, "#{CHANNEL}", $2
     elsif m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: \* ([^ ]+) (.+)\z/
       fakeirc 'action', $1+SUFFIX, "#{CHANNEL}", $2
-    elsif m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: ([^ ]+) joined the game\z/
+    elsif m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: ([^ ]+) (\(formerly known as [^ ]+\) )?joined the game\z/
       fakeirc 'add', $1+SUFFIX, "#{PROVIDER}"
       fakeirc 'join', $1+SUFFIX, "#{CHANNEL}"
       users, _ = Open3.capture2("#{FAKEIRC} list #{CHANNEL.shellescape} #{PROVIDER}")
