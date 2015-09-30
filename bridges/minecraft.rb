@@ -64,8 +64,8 @@ thr2 = Thread.new do
       cmd = "tellraw @a [\"\",{\"text\":\"#{$1}\",\"color\":\"gray\"},{\"text\":\" joined IRC\",\"color\":\"yellow\"}]"
       stdin.puts cmd
       stdin.flush
-    elsif m =~ /\APART (.+)\z/
-      cmd = "tellraw @a [\"\",{\"text\":\"#{$1}\",\"color\":\"gray\"},{\"text\":\" left IRC\",\"color\":\"yellow\"}]"
+    elsif m =~ /\A(PART|QUIT) (.+)\z/
+      cmd = "tellraw @a [\"\",{\"text\":\"#{$2}\",\"color\":\"gray\"},{\"text\":\" left IRC\",\"color\":\"yellow\"}]"
       stdin.puts cmd
       stdin.flush
     end

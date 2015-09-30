@@ -67,6 +67,12 @@ class IRCUser
     channels.each do |chan|
       chan.users.delete(self)
       chan.umodes.delete(@nick)
+      chan.listeners.each do |l|
+        if l.provider
+          next if self.is_a? FakeUser and self.provider == l.provider
+        end
+        l.send_data "QUIT #{@nick}\n"
+      end
     end
   end
 
@@ -206,6 +212,8 @@ class IRCServer < EventMachine::Connection
       IRCUser.get(prefix).join(chan, umode)
     when "PART"
       IRCUser.get(prefix).part(args[0])
+    when "QUIT"
+      IRCUser.remove(prefix, args[0])
     when "PRIVMSG"
       chan = IRCChannel.get(args[0])
       if chan
