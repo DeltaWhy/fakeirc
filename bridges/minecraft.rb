@@ -26,7 +26,7 @@ thr = Thread.new do
     m = stdout.gets.encode("UTF-8", "UTF-8")
     STDERR.puts m
     STDERR.flush
-    if m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: \<(.+)\> (.+)\z/
+    if m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: \<(.+?)\> (.+)\z/
       fakeirc 'message', $1+SUFFIX, "#{CHANNEL}", $2
     elsif m.strip =~ /\A\[[0-9:]+\] \[[^\]]+\]: \* ([^ ]+) (.+)\z/
       fakeirc 'action', $1+SUFFIX, "#{CHANNEL}", $2
@@ -52,7 +52,7 @@ thr2 = Thread.new do
     m = stdout2.gets.encode("UTF-8", "UTF-8").strip
     STDERR.puts m
     STDERR.flush
-    if m =~ /\A\<([^>]+)\> (.+)\z/
+    if m =~ /\A\<([^>]+?)\> (.+)\z/
       cmd = "tellraw @a [\"\",{\"text\":\"[\"},{\"text\":\"#{$1}\",\"color\":\"gray\"},{\"text\":\"] \",\"color\":\"none\"},{\"text\":#{JSON.dump $2},\"color\":\"none\"}]"
       stdin.puts cmd
       stdin.flush
