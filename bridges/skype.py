@@ -32,14 +32,14 @@ for m in chat.Members:
     if m == skype.CurrentUser:
         continue
     members.append(m.Handle)
-    fakeirc("add", m.Handle+"["+SUFFIX+"]", PROVIDER)
+    fakeirc("add", irc_nick(m.Handle), PROVIDER)
     if m.OnlineStatus != "ONLINE":
-        fakeirc("away", m.Handle+"["+SUFFIX+"]")
-    fakeirc("join", m.Handle+"["+SUFFIX+"]", CHANNEL)
+        fakeirc("away", irc_nick(m.Handle))
+    fakeirc("join", irc_nick(m.Handle), CHANNEL)
 
 def cleanup():
     for m in members:
-        fakeirc("remove", m+"["+SUFFIX+"]")
+        fakeirc("remove", irc_nick(m))
 
 def on_interrupt(signo, stackframe):
     cleanup()
@@ -50,20 +50,23 @@ def on_message_status(message, status):
         if status == "RECEIVED":
             if message.Type == "SAID":
                 for line in message.Body.split('\n'):
-                    fakeirc("message", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(line, 'utf-8'))
+                    fakeirc("message", irc_nick(message.Sender.Handle), CHANNEL, unicode.encode(line, 'utf-8'))
             elif message.Type == "EMOTED":
-                fakeirc("action", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(message.Body, 'utf-8'))
+                fakeirc("action", irc_nick(message.Sender.Handle), CHANNEL, unicode.encode(message.Body, 'utf-8'))
             elif message.Type == "SETTOPIC":
-                fakeirc("topic", message.Sender.Handle+"["+SUFFIX+"]", CHANNEL, unicode.encode(message.Body, 'utf-8'))
+                fakeirc("topic", irc_nick(message.Sender.Handle), CHANNEL, unicode.encode(message.Body, 'utf-8'))
         else:
             print(message, status)
 
 def on_online_status(user, status):
     if user.Handle in members:
         if status != "ONLINE":
-            fakeirc("away", user.Handle+"["+SUFFIX+"]")
+            fakeirc("away", irc_nick(user.Handle))
         else:
-            fakeirc("unaway", user.Handle+"["+SUFFIX+"]")
+            fakeirc("unaway", irc_nick(user.Handle))
+
+def irc_nick(skype_handle):
+    return skype_handle.replace(".", "") + "[" + SUFFIX + "]"
 
 signal.signal(signal.SIGINT, on_interrupt)
 skype.OnMessageStatus = on_message_status
