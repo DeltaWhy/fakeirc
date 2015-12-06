@@ -21,6 +21,9 @@ PROVIDER = sys.argv[2]
 CHANNEL = sys.argv[3]
 SUFFIX = sys.argv[4]
 
+def irc_nick(skype_handle):
+    return skype_handle.replace(".", "") + "[" + SUFFIX + "]"
+
 skype = Skype4Py.Skype()
 skype.Attach()
 my_nick = skype.CurrentUser.Handle
@@ -64,9 +67,6 @@ def on_online_status(user, status):
             fakeirc("away", irc_nick(user.Handle))
         else:
             fakeirc("unaway", irc_nick(user.Handle))
-
-def irc_nick(skype_handle):
-    return skype_handle.replace(".", "") + "[" + SUFFIX + "]"
 
 signal.signal(signal.SIGINT, on_interrupt)
 skype.OnMessageStatus = on_message_status
